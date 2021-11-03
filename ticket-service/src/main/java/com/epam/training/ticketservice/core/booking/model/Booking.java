@@ -2,11 +2,10 @@ package com.epam.training.ticketservice.core.booking.model;
 
 import com.epam.training.ticketservice.configuration.ApplicationConfiguration;
 import com.epam.training.ticketservice.core.screening.model.Screening;
+import com.epam.training.ticketservice.core.user.model.User;
 
 import javax.persistence.*;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Entity
 public class Booking {
@@ -15,22 +14,27 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
     private Screening screening;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<BookedSeat> seats;
+    @ManyToOne
+    private User user;
 
     private long price;
 
-    public Booking(Screening screening, Set<BookedSeat> seats, long price) {
+    private int rowNumber;
+
+    private int columnNumber;
+
+    public Booking(Screening screening, User user, int rowNumber, int columnNumber, long price) {
         this.screening = screening;
-        this.seats = seats;
+        this.user = user;
         this.price = price;
+        this.rowNumber = rowNumber;
+        this.columnNumber = columnNumber;
     }
 
-    protected Booking() {
-    }
+    protected Booking() {}
 
     public Screening getScreening() {
         return screening;
@@ -38,14 +42,6 @@ public class Booking {
 
     public void setScreening(Screening screening) {
         this.screening = screening;
-    }
-
-    public Set<BookedSeat> getSeats() {
-        return seats;
-    }
-
-    public void setSeats(Set<BookedSeat> seats) {
-        this.seats = seats;
     }
 
     public long getPrice() {
@@ -56,16 +52,51 @@ public class Booking {
         this.price = price;
     }
 
+    public int getRowNumber() {
+        return rowNumber;
+    }
+
+    public void setRowNumber(int rowNumber) {
+        this.rowNumber = rowNumber;
+    }
+
+    public int getColumnNumber() {
+        return columnNumber;
+    }
+
+    public void setColumnNumber(int columnNumber) {
+        this.columnNumber = columnNumber;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Booking booking = (Booking) o;
+        return rowNumber == booking.rowNumber && columnNumber == booking.columnNumber &&
+            screening.equals(booking.screening);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(screening, rowNumber, columnNumber);
+    }
+
     @Override
     public String toString() {
-        var seatsStr = seats.stream().map(BookedSeat::toString).collect(Collectors.joining(", "));
-
-        return String.format("Seats %s on %s in room %s starting at %s for %d HUF",
-            seatsStr,
-            screening.getMovie().getName(),
-            screening.getRoom().getName(),
-            ApplicationConfiguration.formatter.format(screening.getScreeningTime()),
-            price);
+        return String.format("(%d, %d)", rowNumber, columnNumber);
     }
 
 }
