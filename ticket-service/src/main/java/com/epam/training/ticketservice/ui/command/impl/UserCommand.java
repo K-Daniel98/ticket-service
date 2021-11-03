@@ -1,7 +1,8 @@
 package com.epam.training.ticketservice.ui.command.impl;
 
+import com.epam.training.ticketservice.configuration.ApplicationConfiguration;
+import com.epam.training.ticketservice.core.booking.model.Booking;
 import com.epam.training.ticketservice.core.user.service.AuthService;
-import com.epam.training.ticketservice.core.booking.model.BookedSeat;
 import com.epam.training.ticketservice.core.booking.service.BookingService;
 import com.epam.training.ticketservice.core.movie.service.MovieService;
 import com.epam.training.ticketservice.core.room.service.RoomService;
@@ -16,6 +17,7 @@ import org.springframework.shell.standard.ShellMethodAvailability;
 import org.springframework.shell.standard.ShellOption;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @ShellComponent
@@ -73,18 +75,33 @@ public class UserCommand extends AbstractUserStateCommand {
     }
 
     @ShellMethod(value = "Describe account", key = "describe account")
-    private String describeAccount() {
+    private List<String> describeAccount() {
         if (authService.getLoggedInUser().isEmpty()) {
-            return "You are not signed in";
+            return List.of("You are not signed in");
         }
 
         var user = authService.getLoggedInUser().get();
 
         if (user.getRole() == User.Role.ADMIN) {
-            return String.format("Signed in with privileged account '%s'", user.getUsername());
+            return List.of(String.format("Signed in with privileged account '%s'", user.getUsername()));
         }
 
-        return String.format("Signed in with account '%s'", user.getUsername());
+        var result =
+            new java.util.ArrayList<>(List.of(String.format("Signed in with account '%s'", user.getUsername())));
+
+        var bookingData = user.getBookings().stream()
+            .map(UserCommand::getBookingDataString)
+            .collect(Collectors.toList());
+
+        if (bookingData.size() == 0) {
+            result.add("You have not booked any tickets yet");
+        } else {
+            result.add("Your previous bookings are");
+        }
+
+        result.addAll(bookingData);
+
+        return result;
     }
 
     @ShellMethod(value = "Sign up", key = "sign up")
@@ -105,15 +122,33 @@ public class UserCommand extends AbstractUserStateCommand {
                               @ShellOption String screeningDate, @ShellOption String listOfSeats) {
         try {
 
-            var booked = bookingService.book(movieName, roomName, screeningDate, listOfSeats);
+            var user = authService.getLoggedInUser().get();
+            var bookings = bookingService.book(user, movieName, roomName, screeningDate, listOfSeats);
 
-            var seatsStr = booked.getSeats().stream().map(BookedSeat::toString).collect(Collectors.joining(", "));
+            var seatStr = bookings.stream()
+                .map(Booking::toString)
+                .collect(Collectors.joining(", "));
 
-            return String.format("Seats booked: %s; the price of this booking is %d HUF", seatsStr, booked.getPrice());
+            var finalPrice = bookings.stream()
+                .mapToLong(Booking::getPrice)
+                .reduce(Long::sum)
+                .getAsLong();
 
+            return String.format("Seats booked: %s; the price of this booking is %d HUF", seatStr, finalPrice);
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
+    }
+
+    private static String getBookingDataString(Booking booking) {
+        var screening = booking.getScreening();
+
+        return String.format("Seat %s on %s in room %s starting at %s for %d HUF",
+            booking,
+            screening.getMovie(),
+            screening.getRoom(),
+            screening.getScreeningTime().format(ApplicationConfiguration.formatter),
+            booking.getPrice());
     }
 
 }
