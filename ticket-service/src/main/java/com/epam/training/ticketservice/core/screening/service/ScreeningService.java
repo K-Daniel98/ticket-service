@@ -14,6 +14,8 @@ public interface ScreeningService {
 
     void createScreening(Screening screening);
 
+    void updateScreening(Screening screening);
+
     void deleteScreening(Screening screening);
 
     List<Screening> listScreenings();

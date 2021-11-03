@@ -79,6 +79,11 @@ public class ScreeningServiceImpl implements ScreeningService {
     }
 
     @Override
+    public void updateScreening(Screening screening) {
+        screeningRepository.save(screening);
+    }
+
+    @Override
     public void deleteScreening(Screening screening) {
         screeningRepository.delete(screening);
     }
