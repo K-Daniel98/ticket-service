@@ -1,12 +1,15 @@
 package com.epam.training.ticketservice.core.screening.model;
 
 import com.epam.training.ticketservice.configuration.ApplicationConfiguration;
+import com.epam.training.ticketservice.core.booking.model.Booking;
 import com.epam.training.ticketservice.core.movie.model.Movie;
 import com.epam.training.ticketservice.core.room.model.Room;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 public class Screening {
@@ -22,6 +25,9 @@ public class Screening {
     private Room room;
 
     private LocalDateTime screeningTime;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Booking> bookings = new HashSet<>();
 
     public Screening(Movie movie, Room room, LocalDateTime screeningTime) {
         this.movie = movie;
@@ -54,6 +60,14 @@ public class Screening {
 
     public void setScreeningTime(LocalDateTime screeningTime) {
         this.screeningTime = screeningTime;
+    }
+
+    public Set<Booking> getBookings() {
+        return bookings;
+    }
+
+    public void setBookings(Set<Booking> bookings) {
+        this.bookings = bookings;
     }
 
     @Override
