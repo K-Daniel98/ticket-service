@@ -1,7 +1,11 @@
 package com.epam.training.ticketservice.core.user.model;
 
+import com.epam.training.ticketservice.core.booking.model.Booking;
+
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 public class User {
@@ -17,6 +21,9 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    private Set<Booking> bookings = new HashSet<>();
 
     public User(String username, String password, Role role) {
         this.username = username;
@@ -49,6 +56,14 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public Set<Booking> getBookings() {
+        return bookings;
+    }
+
+    public void setBookings(Set<Booking> bookings) {
+        this.bookings = bookings;
     }
 
     @Override
