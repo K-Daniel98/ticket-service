@@ -1,11 +1,11 @@
 package com.epam.training.ticketservice.core.booking.exception;
 
-import com.epam.training.ticketservice.core.booking.model.BookedSeat;
+import com.epam.training.ticketservice.core.booking.model.Booking;
 
 public class SeatAlreadyTakenException extends RuntimeException {
 
-    public SeatAlreadyTakenException(BookedSeat seat) {
-        super(String.format("Seat %s is already taken", seat));
+    public SeatAlreadyTakenException(Booking booking) {
+        super(String.format("Seat %s is already taken", booking));
     }
 
 }
