@@ -1,49 +1,35 @@
 package com.epam.training.ticketservice.core.movie.model;
 
+import com.epam.training.ticketservice.core.pricing.model.PriceComponent;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import java.util.Objects;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@RequiredArgsConstructor
 public class Movie {
 
+    @NonNull
     @Id
     private String name;
+    @NonNull
     private String type;
-    private long length;
+    @NonNull
+    private Long length;
 
-    public Movie(String name, String type, long length) {
-        this.name = name;
-        this.type = type;
-        this.length = length;
-    }
-
-    protected Movie() {
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public long getLength() {
-        return length;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setLength(long length) {
-        this.length = length;
-    }
+    @OneToOne
+    private PriceComponent priceComponent;
 
     @Override
     public String toString() {

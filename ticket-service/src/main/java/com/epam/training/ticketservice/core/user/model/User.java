@@ -1,6 +1,11 @@
 package com.epam.training.ticketservice.core.user.model;
 
 import com.epam.training.ticketservice.core.booking.model.Booking;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -8,6 +13,10 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class User {
 
     public enum Role {
@@ -22,49 +31,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    private Set<Booking> bookings = new HashSet<>();
-
-    public User(String username, String password, Role role) {
-        this.username = username;
-        this.password = password;
-        this.role = role;
-    }
-
-    protected User() {
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public Set<Booking> getBookings() {
-        return bookings;
-    }
-
-    public void setBookings(Set<Booking> bookings) {
-        this.bookings = bookings;
-    }
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private final Set<Booking> bookings = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

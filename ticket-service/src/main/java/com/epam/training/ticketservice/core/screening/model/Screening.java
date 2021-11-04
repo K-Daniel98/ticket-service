@@ -3,72 +3,56 @@ package com.epam.training.ticketservice.core.screening.model;
 import com.epam.training.ticketservice.configuration.ApplicationConfiguration;
 import com.epam.training.ticketservice.core.booking.model.Booking;
 import com.epam.training.ticketservice.core.movie.model.Movie;
+import com.epam.training.ticketservice.core.pricing.model.PriceComponent;
 import com.epam.training.ticketservice.core.room.model.Room;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@RequiredArgsConstructor
 public class Screening {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @NonNull
     @OneToOne
     private Movie movie;
 
+    @NonNull
     @ManyToOne
     private Room room;
 
+    @OneToOne
+    private PriceComponent priceComponent;
+
+    @NonNull
     private LocalDateTime screeningTime;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<Booking> bookings = new HashSet<>();
-
-    public Screening(Movie movie, Room room, LocalDateTime screeningTime) {
-        this.movie = movie;
-        this.room = room;
-        this.screeningTime = screeningTime;
-    }
-
-    protected Screening() {
-    }
-
-    public Movie getMovie() {
-        return movie;
-    }
-
-    public void setMovie(Movie movie) {
-        this.movie = movie;
-    }
-
-    public Room getRoom() {
-        return room;
-    }
-
-    public void setRoom(Room room) {
-        this.room = room;
-    }
-
-    public LocalDateTime getScreeningTime() {
-        return screeningTime;
-    }
-
-    public void setScreeningTime(LocalDateTime screeningTime) {
-        this.screeningTime = screeningTime;
-    }
-
-    public Set<Booking> getBookings() {
-        return bookings;
-    }
-
-    public void setBookings(Set<Booking> bookings) {
-        this.bookings = bookings;
-    }
+    private final Set<Booking> bookings = new HashSet<>();
 
     @Override
     public String toString() {

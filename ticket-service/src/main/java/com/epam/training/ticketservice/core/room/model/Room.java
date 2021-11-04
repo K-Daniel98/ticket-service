@@ -1,63 +1,44 @@
 package com.epam.training.ticketservice.core.room.model;
 
+import com.epam.training.ticketservice.core.pricing.model.PriceComponent;
 import com.epam.training.ticketservice.core.screening.model.Screening;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@RequiredArgsConstructor
 public class Room {
 
+    @NonNull
     @Id
     private String name;
-    private int rows;
+    @NonNull
+    private Integer rows;
+    @NonNull
+    private Integer columns;
 
-    private int columns;
+    @OneToOne
+    private PriceComponent priceComponent;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private List<Screening> screenings;
-
-    public Room(String name, int rows, int columns) {
-        this.name = name;
-        this.rows = rows;
-        this.columns = columns;
-    }
-
-    protected Room() {
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getRows() {
-        return rows;
-    }
-
-    public void setRows(int rows) {
-        this.rows = rows;
-    }
-
-    public int getColumns() {
-        return columns;
-    }
-
-    public void setColumns(int columns) {
-        this.columns = columns;
-    }
-
-    public List<Screening> getScreenings() {
-        return screenings;
-    }
-
-    public void setScreening(List<Screening> screenings) {
-        this.screenings = screenings;
-    }
+    private final List<Screening> screenings = new ArrayList<>();
 
     @Override
     public String toString() {
