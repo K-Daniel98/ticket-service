@@ -61,8 +61,9 @@ public class Screening {
             return false;
         }
         Screening screening = (Screening) o;
-        return movie.equals(screening.movie) && room.equals(screening.room) &&
-            screeningTime.equals(screening.screeningTime);
+        return movie.equals(screening.movie)
+            && room.equals(screening.room)
+            && screeningTime.equals(screening.screeningTime);
     }
 
     @Override

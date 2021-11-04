@@ -58,7 +58,7 @@ public class PirceComponentServiceImpl implements PriceComponentService {
             .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
         var priceComponent = priceComponentRepository.getPriceComponentByName(existingPriceComponentName)
-                .orElseThrow(() -> new PriceComponentDoesNotExistException(existingPriceComponentName));
+            .orElseThrow(() -> new PriceComponentDoesNotExistException(existingPriceComponentName));
 
         room.setPriceComponent(priceComponent);
 
@@ -73,7 +73,7 @@ public class PirceComponentServiceImpl implements PriceComponentService {
             .orElseThrow(() -> new MovieDoesNotExistException(movieName));
 
         var priceComponent = priceComponentRepository.getPriceComponentByName(existingPriceComponentName)
-                .orElseThrow(() -> new PriceComponentDoesNotExistException(existingPriceComponentName));
+            .orElseThrow(() -> new PriceComponentDoesNotExistException(existingPriceComponentName));
 
         movie.setPriceComponent(priceComponent);
 
@@ -83,7 +83,8 @@ public class PirceComponentServiceImpl implements PriceComponentService {
     }
 
     @Override
-    public Screening attachPriceComponentToScreening(String existingPriceComponentName, String movieName, String roomName,
+    public Screening attachPriceComponentToScreening(String existingPriceComponentName, String movieName,
+                                                     String roomName,
                                                      String screeningTime) {
         var room = roomRepository.findByName(roomName)
             .orElseThrow(() -> new RoomDoesNotExistException(roomName));
@@ -93,8 +94,9 @@ public class PirceComponentServiceImpl implements PriceComponentService {
         var movie = movieRepository.findByName(movieName)
             .orElseThrow(() -> new MovieDoesNotExistException(movieName));
 
-        var screening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room, formattedScreeningTime)
-            .orElseThrow(ScreeningDoesNotExistException::new);
+        var screening =
+            screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room, formattedScreeningTime)
+                .orElseThrow(ScreeningDoesNotExistException::new);
 
         var priceComponent = priceComponentRepository.getPriceComponentByName(existingPriceComponentName)
             .orElseThrow(() -> new PriceComponentDoesNotExistException(existingPriceComponentName));

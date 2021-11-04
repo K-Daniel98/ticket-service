@@ -9,7 +9,11 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import java.util.Objects;
 
 @Entity
@@ -50,8 +54,9 @@ public class Booking {
         }
         Booking booking = (Booking) o;
 
-        return rowNumber.equals(booking.rowNumber) && columnNumber.equals(booking.columnNumber) &&
-            screening.equals(booking.screening);
+        return rowNumber.equals(booking.rowNumber)
+            && columnNumber.equals(booking.columnNumber)
+            && screening.equals(booking.screening);
     }
 
     @Override

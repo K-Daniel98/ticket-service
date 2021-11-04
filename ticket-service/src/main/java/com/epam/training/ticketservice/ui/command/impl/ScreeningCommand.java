@@ -41,7 +41,8 @@ public class ScreeningCommand extends AbstractUserStateCommand {
             return exception.getMessage();
         }
 
-        return "Screening has been created";
+        //return "Screening has been created";
+        return null;
     }
 
     @ShellMethodAvailability("admin")

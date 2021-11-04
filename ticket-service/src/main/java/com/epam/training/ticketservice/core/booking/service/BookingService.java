@@ -8,6 +8,8 @@ import java.util.Set;
 
 public interface BookingService {
     Set<Booking> book(User user, String movieName, String roomName, String screeningTime, String seats);
+
     long showPriceForBooking(String movieName, String roomName, String screeningTime, String seats);
+
     long calculateOverallPriceForBooking(Collection<Booking> bookings);
 }

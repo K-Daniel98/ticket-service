@@ -20,7 +20,8 @@ public class PriceComponentCommand extends AbstractUserStateCommand {
     private final DateTimeFormatter dateTimeFormatter;
 
     @Autowired
-    public PriceComponentCommand(AuthService authService, PriceComponentService priceComponentService, BasePrice basePrice, DateTimeFormatter dateTimeFormatter) {
+    public PriceComponentCommand(AuthService authService, PriceComponentService priceComponentService,
+                                 BasePrice basePrice, DateTimeFormatter dateTimeFormatter) {
         super(authService);
         this.priceComponentService = priceComponentService;
         this.basePrice = basePrice;
@@ -74,7 +75,9 @@ public class PriceComponentCommand extends AbstractUserStateCommand {
                                                   @ShellOption String roomName,
                                                   @ShellOption String screeningTime) {
         try {
-            var screening = priceComponentService.attachPriceComponentToScreening(priceComponentName, movieName, roomName, screeningTime);
+            var screening =
+                priceComponentService.attachPriceComponentToScreening(priceComponentName, movieName, roomName,
+                    screeningTime);
             return String.format("Attached price component '%s' to screening '%s, screened in room %s, at %s'",
                 priceComponentName,
                 screening.getMovie(),

@@ -58,7 +58,8 @@ public class BookingServiceImpl implements BookingService {
         var room = roomRepository.findByName(roomName)
             .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
-        var plannedScreening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room, LocalDateTime.parse(screeningTime, formatter))
+        var plannedScreening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room,
+                LocalDateTime.parse(screeningTime, formatter))
             .orElseThrow(ScreeningDoesNotExistException::new);
 
         var splitted = seats.split(" ");
@@ -101,7 +102,8 @@ public class BookingServiceImpl implements BookingService {
         var room = roomRepository.findByName(roomName)
             .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
-        var plannedScreening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room, LocalDateTime.parse(screeningTime, formatter))
+        var plannedScreening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room,
+                LocalDateTime.parse(screeningTime, formatter))
             .orElseThrow(ScreeningDoesNotExistException::new);
 
         var numberOfSeats = seats.split(" ").length;
