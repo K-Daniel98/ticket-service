@@ -1,16 +1,16 @@
 package com.training.epam.ticketservice.at;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
+import io.cucumber.java.After;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import io.cucumber.java.After;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class GenericCliProcessStepDefs {
 
@@ -24,8 +24,8 @@ public class GenericCliProcessStepDefs {
 
     @Given("the application is started")
     public void applicationStarted() throws IOException, InterruptedException {
-        // cliProcess.run("java -jar -Dspring.profiles.active=ci ../ticket-service/target/ticket-service-0.0.1-SNAPSHOT.jar");
-        cliProcess.run("powershell.exe mvn spring-boot:run -f ../ticket-service");
+        cliProcess.run("java -jar -Dspring.profiles.active=ci ../ticket-service/target/ticket-service-0.0.1-SNAPSHOT.jar");
+        // cliProcess.run("powershell.exe mvn spring-boot:run -f ../ticket-service");
     }
 
     @Given("the prompt containing {string} is printed")
