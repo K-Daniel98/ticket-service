@@ -14,7 +14,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class GenericCliProcessStepDefs {
 
-    private static final int OUTPUT_TIMEOUT = 25000;
+    private static final int OUTPUT_TIMEOUT = 45000;
 
     private ProcessUnderTest cliProcess;
 
