@@ -36,8 +36,7 @@ public class Screening {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @NonNull
-    @OneToOne
+    @ManyToOne
     private Movie movie;
 
     @NonNull

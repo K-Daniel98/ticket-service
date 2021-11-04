@@ -3,7 +3,6 @@ package com.epam.training.ticketservice.core.screening.service;
 import com.epam.training.ticketservice.core.movie.model.Movie;
 import com.epam.training.ticketservice.core.room.model.Room;
 import com.epam.training.ticketservice.core.screening.model.Screening;
-import org.springframework.shell.standard.ShellOption;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,13 +12,19 @@ public interface ScreeningService {
 
     Optional<Screening> getScreeningByMovieAndRoomAndScreeningTime(Movie movie, Room room, LocalDateTime screeningTime);
 
-    void createScreening(Screening screening);
+    List<Screening> getScreeningsByMovie(Movie movie);
+
+    void createScreening(String movieName,
+                         String roomName,
+                         String screeningTime);
 
     void updateScreening(Screening screening);
 
-    void deleteScreening(@ShellOption String movieName,
-                         @ShellOption String roomName,
-                         @ShellOption String screeningTime);
+    void deleteScreening(String movieName,
+                         String roomName,
+                         String screeningTime);
+
+    void deleteScreening(Screening screening);
 
     List<Screening> listScreenings();
 

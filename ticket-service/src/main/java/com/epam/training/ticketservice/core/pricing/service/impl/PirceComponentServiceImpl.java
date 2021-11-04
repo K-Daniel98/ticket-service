@@ -2,7 +2,7 @@ package com.epam.training.ticketservice.core.pricing.service.impl;
 
 import com.epam.training.ticketservice.core.movie.exception.MovieDoesNotExistException;
 import com.epam.training.ticketservice.core.movie.model.Movie;
-import com.epam.training.ticketservice.core.movie.service.MovieService;
+import com.epam.training.ticketservice.core.movie.repository.MovieRepository;
 import com.epam.training.ticketservice.core.pricing.exception.PriceComponentAlreadyExistException;
 import com.epam.training.ticketservice.core.pricing.exception.PriceComponentDoesNotExistException;
 import com.epam.training.ticketservice.core.pricing.model.PriceComponent;
@@ -10,10 +10,10 @@ import com.epam.training.ticketservice.core.pricing.repository.PriceComponentRep
 import com.epam.training.ticketservice.core.pricing.service.PriceComponentService;
 import com.epam.training.ticketservice.core.room.exception.RoomDoesNotExistException;
 import com.epam.training.ticketservice.core.room.model.Room;
-import com.epam.training.ticketservice.core.room.service.RoomService;
+import com.epam.training.ticketservice.core.room.repository.RoomRepository;
 import com.epam.training.ticketservice.core.screening.exception.ScreeningDoesNotExistException;
 import com.epam.training.ticketservice.core.screening.model.Screening;
-import com.epam.training.ticketservice.core.screening.service.ScreeningService;
+import com.epam.training.ticketservice.core.screening.repository.ScreeningRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,21 +24,21 @@ import java.time.format.DateTimeFormatter;
 public class PirceComponentServiceImpl implements PriceComponentService {
 
     private final PriceComponentRepository priceComponentRepository;
-    private final MovieService movieService;
-    private final ScreeningService screeningService;
-    private final RoomService roomService;
+    private final MovieRepository movieRepository;
+    private final ScreeningRepository screeningRepository;
+    private final RoomRepository roomRepository;
     private final DateTimeFormatter dateTimeFormatter;
 
     @Autowired
     public PirceComponentServiceImpl(PriceComponentRepository priceComponentRepository,
-                                     MovieService movieService,
-                                     ScreeningService screeningService,
-                                     RoomService roomService,
+                                     MovieRepository movieRepository,
+                                     ScreeningRepository screeningRepository,
+                                     RoomRepository roomRepository,
                                      DateTimeFormatter dateTimeFormatter) {
         this.priceComponentRepository = priceComponentRepository;
-        this.movieService = movieService;
-        this.screeningService = screeningService;
-        this.roomService = roomService;
+        this.movieRepository = movieRepository;
+        this.screeningRepository = screeningRepository;
+        this.roomRepository = roomRepository;
         this.dateTimeFormatter = dateTimeFormatter;
     }
 
@@ -54,78 +54,55 @@ public class PirceComponentServiceImpl implements PriceComponentService {
 
     @Override
     public Room attachPriceComponentToRoom(String existingPriceComponentName, String roomName) {
-        var room = roomService.getRoomByName(roomName);
+        var room = roomRepository.findByName(roomName)
+            .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
-        if (room.isEmpty()) {
-            throw new RoomDoesNotExistException(roomName);
-        }
+        var priceComponent = priceComponentRepository.getPriceComponentByName(existingPriceComponentName)
+                .orElseThrow(() -> new PriceComponentDoesNotExistException(existingPriceComponentName));
 
-        var priceComponent = priceComponentRepository.getPriceComponentByName(existingPriceComponentName);
+        room.setPriceComponent(priceComponent);
 
-        if (priceComponent.isEmpty()) {
-            throw new PriceComponentDoesNotExistException(existingPriceComponentName);
-        }
+        roomRepository.save(room);
 
-        room.get().setPriceComponent(priceComponent.get());
-
-        roomService.updateRoom(room.get());
-
-        return room.get();
+        return room;
     }
 
     @Override
     public Movie attachPriceComponentToMovie(String existingPriceComponentName, String movieName) {
-        var movie = movieService.getMovieByName(movieName);
+        var movie = movieRepository.findByName(movieName)
+            .orElseThrow(() -> new MovieDoesNotExistException(movieName));
 
-        if (movie.isEmpty()) {
-            throw new MovieDoesNotExistException(movieName);
-        }
+        var priceComponent = priceComponentRepository.getPriceComponentByName(existingPriceComponentName)
+                .orElseThrow(() -> new PriceComponentDoesNotExistException(existingPriceComponentName));
 
-        var priceComponent = priceComponentRepository.getPriceComponentByName(existingPriceComponentName);
+        movie.setPriceComponent(priceComponent);
 
-        if (priceComponent.isEmpty()) {
-            throw new PriceComponentDoesNotExistException(existingPriceComponentName);
-        }
+        movieRepository.save(movie);
 
-        movie.get().setPriceComponent(priceComponent.get());
-
-        movieService.updateMovie(movie.get());
-
-        return movie.get();
+        return movie;
     }
 
     @Override
     public Screening attachPriceComponentToScreening(String existingPriceComponentName, String movieName, String roomName,
                                                      String screeningTime) {
-        var room = roomService.getRoomByName(roomName);
+        var room = roomRepository.findByName(roomName)
+            .orElseThrow(() -> new RoomDoesNotExistException(roomName));
+
         var formattedScreeningTime = LocalDateTime.parse(screeningTime, dateTimeFormatter);
 
-        if (room.isEmpty()) {
-            throw new RoomDoesNotExistException(roomName);
-        }
+        var movie = movieRepository.findByName(movieName)
+            .orElseThrow(() -> new MovieDoesNotExistException(movieName));
 
-        var movie = movieService.getMovieByName(movieName);
+        var screening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room, formattedScreeningTime)
+            .orElseThrow(ScreeningDoesNotExistException::new);
 
-        if (movie.isEmpty()) {
-            throw new MovieDoesNotExistException(movieName);
-        }
+        var priceComponent = priceComponentRepository.getPriceComponentByName(existingPriceComponentName)
+            .orElseThrow(() -> new PriceComponentDoesNotExistException(existingPriceComponentName));
 
-        var screening = screeningService.getScreeningByMovieAndRoomAndScreeningTime(movie.get(), room.get(), formattedScreeningTime);
+        screening.setPriceComponent(priceComponent);
 
-        if (screening.isEmpty()) {
-            throw new ScreeningDoesNotExistException();
-        }
+        screeningRepository.save(screening);
 
-        var priceComponent = priceComponentRepository.getPriceComponentByName(existingPriceComponentName);
-
-        if (priceComponent.isEmpty()) {
-            throw new PriceComponentDoesNotExistException(existingPriceComponentName);
-        }
-
-        screening.get().setPriceComponent(priceComponent.get());
-
-        screeningService.updateScreening(screening.get());
-
-        return screening.get();
+        return screening;
     }
 }

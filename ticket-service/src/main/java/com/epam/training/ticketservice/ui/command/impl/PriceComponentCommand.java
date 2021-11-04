@@ -10,17 +10,21 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellMethodAvailability;
 import org.springframework.shell.standard.ShellOption;
 
+import java.time.format.DateTimeFormatter;
+
 @ShellComponent
 public class PriceComponentCommand extends AbstractUserStateCommand {
 
     private final PriceComponentService priceComponentService;
     private final BasePrice basePrice;
+    private final DateTimeFormatter dateTimeFormatter;
 
     @Autowired
-    public PriceComponentCommand(AuthService authService, PriceComponentService priceComponentService, BasePrice basePrice) {
+    public PriceComponentCommand(AuthService authService, PriceComponentService priceComponentService, BasePrice basePrice, DateTimeFormatter dateTimeFormatter) {
         super(authService);
         this.priceComponentService = priceComponentService;
         this.basePrice = basePrice;
+        this.dateTimeFormatter = dateTimeFormatter;
     }
 
     @ShellMethodAvailability("admin")
@@ -71,7 +75,11 @@ public class PriceComponentCommand extends AbstractUserStateCommand {
                                                   @ShellOption String screeningTime) {
         try {
             var screening = priceComponentService.attachPriceComponentToScreening(priceComponentName, movieName, roomName, screeningTime);
-            return String.format("Attached price component '%s' to screening '%s'", priceComponentName, screening);
+            return String.format("Attached price component '%s' to screening '%s, screened in room %s, at %s'",
+                priceComponentName,
+                screening.getMovie(),
+                screening.getRoom().getName(),
+                screening.getScreeningTime().format(dateTimeFormatter));
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }

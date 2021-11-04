@@ -6,15 +6,14 @@ import com.epam.training.ticketservice.core.booking.model.Booking;
 import com.epam.training.ticketservice.core.booking.service.BookingService;
 import com.epam.training.ticketservice.core.movie.exception.MovieDoesNotExistException;
 import com.epam.training.ticketservice.core.movie.model.Movie;
-import com.epam.training.ticketservice.core.movie.service.MovieService;
+import com.epam.training.ticketservice.core.movie.repository.MovieRepository;
 import com.epam.training.ticketservice.core.pricing.model.BasePrice;
 import com.epam.training.ticketservice.core.room.exception.RoomDoesNotExistException;
 import com.epam.training.ticketservice.core.room.model.Room;
-import com.epam.training.ticketservice.core.room.service.RoomService;
+import com.epam.training.ticketservice.core.room.repository.RoomRepository;
 import com.epam.training.ticketservice.core.screening.exception.ScreeningDoesNotExistException;
 import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.screening.repository.ScreeningRepository;
-import com.epam.training.ticketservice.core.screening.service.ScreeningService;
 import com.epam.training.ticketservice.core.user.model.User;
 import com.epam.training.ticketservice.core.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,31 +21,29 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Set;
 
 @Service
 public class BookingServiceImpl implements BookingService {
 
     private final ScreeningRepository screeningRepository;
-    private final ScreeningService screeningService;
-    private final RoomService roomService;
-    private final MovieService movieService;
+    private final RoomRepository roomRepository;
+    private final MovieRepository movieRepository;
     private final UserService userService;
     private final DateTimeFormatter formatter;
     private final BasePrice basePrice;
 
     @Autowired
     public BookingServiceImpl(ScreeningRepository screeningRepository,
-                              ScreeningService screeningService,
-                              RoomService roomService,
-                              MovieService movieService,
+                              RoomRepository roomRepository,
+                              MovieRepository movieRepository,
                               UserService userService,
                               DateTimeFormatter formatter,
                               BasePrice basePrice) {
         this.screeningRepository = screeningRepository;
-        this.screeningService = screeningService;
-        this.roomService = roomService;
-        this.movieService = movieService;
+        this.roomRepository = roomRepository;
+        this.movieRepository = movieRepository;
         this.userService = userService;
         this.formatter = formatter;
         this.basePrice = basePrice;
@@ -55,33 +52,18 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Set<Booking> book(User user, String movieName, String roomName, String screeningTime, String seats) {
 
-        var movie = movieService.getMovieByName(movieName);
+        var movie = movieRepository.findByName(movieName)
+            .orElseThrow(() -> new MovieDoesNotExistException(movieName));
 
-        if (movie.isEmpty()) {
-            throw new MovieDoesNotExistException(movieName);
-        }
+        var room = roomRepository.findByName(roomName)
+            .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
-        var room = roomService.getRoomByName(roomName);
-
-        if (room.isEmpty()) {
-            throw new RoomDoesNotExistException(roomName);
-        }
-
-        var plannedScreening = screeningService.getScreeningByMovieAndRoomAndScreeningTime(
-            movie.get(),
-            room.get(),
-            LocalDateTime.parse(screeningTime, formatter)
-        );
-
-        if (plannedScreening.isEmpty()) {
-            throw new ScreeningDoesNotExistException();
-        }
-
-        var screening = plannedScreening.get();
+        var plannedScreening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room, LocalDateTime.parse(screeningTime, formatter))
+            .orElseThrow(ScreeningDoesNotExistException::new);
 
         var splitted = seats.split(" ");
 
-        var pricePerBooking = calculateFinalPrice(movie.get(), room.get(), screening);
+        var pricePerBooking = calculateFinalPrice(movie, room, plannedScreening);
 
         for (var seatData : splitted) {
 
@@ -90,54 +72,48 @@ public class BookingServiceImpl implements BookingService {
             var row = Integer.parseInt(seatSplitted[0]);
             var column = Integer.parseInt(seatSplitted[1]);
 
-            var booking = new Booking(screening, user, pricePerBooking, row, column);
+            var booking = new Booking(plannedScreening, user, pricePerBooking, row, column);
 
-            if (!doesSeatExist(room.get(), row, column)) {
+            if (!doesSeatExist(room, row, column)) {
                 throw new SeatDoesNotExistException(booking);
             }
 
-            if (isSeatTaken(screening.getBookings(), row, column)) {
+            if (isSeatTaken(plannedScreening.getBookings(), row, column)) {
                 throw new SeatAlreadyTakenException(booking);
             }
 
             userService.addBooking(user, booking);
-            screening.getBookings().add(booking);
+            plannedScreening.getBookings().add(booking);
 
         }
 
-        screeningRepository.save(screening);
+        screeningRepository.save(plannedScreening);
 
-        return screening.getBookings();
+        return plannedScreening.getBookings();
     }
 
     @Override
     public long showPriceForBooking(String movieName, String roomName, String screeningTime, String seats) {
-        var movie = movieService.getMovieByName(movieName);
 
-        if (movie.isEmpty()) {
-            throw new MovieDoesNotExistException(movieName);
-        }
+        var movie = movieRepository.findByName(movieName)
+            .orElseThrow(() -> new MovieDoesNotExistException(movieName));
 
-        var room = roomService.getRoomByName(roomName);
+        var room = roomRepository.findByName(roomName)
+            .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
-        if (room.isEmpty()) {
-            throw new RoomDoesNotExistException(roomName);
-        }
-
-        var plannedScreening = screeningService.getScreeningByMovieAndRoomAndScreeningTime(
-            movie.get(),
-            room.get(),
-            LocalDateTime.parse(screeningTime, formatter)
-        );
-
-        if (plannedScreening.isEmpty()) {
-            throw new ScreeningDoesNotExistException();
-        }
-
-        var screening = plannedScreening.get();
+        var plannedScreening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room, LocalDateTime.parse(screeningTime, formatter))
+            .orElseThrow(ScreeningDoesNotExistException::new);
 
         var numberOfSeats = seats.split(" ").length;
-        return numberOfSeats * calculateFinalPrice(movie.get(), room.get(), screening);
+        return numberOfSeats * calculateFinalPrice(movie, room, plannedScreening);
+    }
+
+    @Override
+    public long calculateOverallPriceForBooking(Collection<Booking> bookings) {
+        return bookings.stream()
+            .mapToLong(Booking::getPrice)
+            .reduce(Long::sum)
+            .orElseThrow(() -> new RuntimeException("Final price was not present"));
     }
 
     private long calculateFinalPrice(Movie movie, Room room, Screening screening) {

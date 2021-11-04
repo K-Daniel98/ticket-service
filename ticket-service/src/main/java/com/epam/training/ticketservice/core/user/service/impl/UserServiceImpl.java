@@ -1,6 +1,7 @@
 package com.epam.training.ticketservice.core.user.service.impl;
 
 import com.epam.training.ticketservice.core.booking.model.Booking;
+import com.epam.training.ticketservice.core.user.exception.UserAlreadyExistsException;
 import com.epam.training.ticketservice.core.user.model.User;
 import com.epam.training.ticketservice.core.user.repository.UserRepository;
 import com.epam.training.ticketservice.core.user.service.UserService;
@@ -20,8 +21,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void register(User user) {
-        userRepository.save(user);
+    public void register(String username, String password) {
+        if (userRepository.existsById(username)) {
+            throw new UserAlreadyExistsException(username);
+        }
+        userRepository.save(new User(username, password, User.Role.USER));
     }
 
     @Override

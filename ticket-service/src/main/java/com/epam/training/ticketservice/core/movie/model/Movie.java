@@ -8,6 +8,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
@@ -28,7 +29,7 @@ public class Movie {
     @NonNull
     private Long length;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private PriceComponent priceComponent;
 
     @Override

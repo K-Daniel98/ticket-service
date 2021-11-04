@@ -37,7 +37,7 @@ public class Room {
     @OneToOne
     private PriceComponent priceComponent;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private final List<Screening> screenings = new ArrayList<>();
 
     @Override

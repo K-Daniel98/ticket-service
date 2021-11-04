@@ -54,8 +54,7 @@ public class RoomCommand extends AbstractUserStateCommand {
             return List.of("There are no rooms at the moment");
         }
 
-        return rooms
-            .stream()
+        return rooms.stream()
             .map(Room::toString)
             .collect(Collectors.toList());
     }

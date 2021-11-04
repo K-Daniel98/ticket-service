@@ -23,35 +23,27 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public void createRoom(Room room) {
-
         var name = room.getName();
-
         if (roomRepository.existsById(name)) {
             throw new RoomAlreadyExistException(name);
         }
-
         roomRepository.save(room);
     }
 
     @Override
     public void updateRoom(Room room) {
-
         var name = room.getName();
-
         if (!roomRepository.existsById(name)) {
             throw new RoomDoesNotExistException(name);
         }
-
         roomRepository.save(room);
     }
 
     @Override
     public void deleteRoom(String name) {
-
         if (!roomRepository.existsById(name)) {
             throw new RoomDoesNotExistException(name);
         }
-
         roomRepository.deleteById(name);
     }
 

@@ -56,8 +56,7 @@ public class UserCommand extends AbstractUserStateCommand {
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-
-        return "Successful login";
+        return null;
     }
 
     @ShellMethod(value = "Sign out", key = "sign out")
@@ -99,13 +98,11 @@ public class UserCommand extends AbstractUserStateCommand {
 
     @ShellMethod(value = "Sign up", key = "sign up")
     private String signUp(@ShellOption String username, @ShellOption String password) {
-        var user = userService.getUserByUsername(username);
-        if (user.isPresent()) {
-            return String.format("A user with name '%s' already exists", username);
+        try {
+            userService.register(username, password);
+        } catch (RuntimeException exception) {
+            return exception.getMessage();
         }
-
-        userService.register(new User(username, password, User.Role.USER));
-
         return "Account created";
     }
 
@@ -114,7 +111,6 @@ public class UserCommand extends AbstractUserStateCommand {
     private String bookTicket(@ShellOption String movieName, @ShellOption String roomName,
                               @ShellOption String screeningDate, @ShellOption String listOfSeats) {
         try {
-
             var user = authService.getLoggedInUser().get();
             var bookings = bookingService.book(user, movieName, roomName, screeningDate, listOfSeats);
 
@@ -122,15 +118,9 @@ public class UserCommand extends AbstractUserStateCommand {
                 .map(Booking::toString)
                 .collect(Collectors.joining(", "));
 
-            var finalPrice = bookings.stream()
-                .mapToLong(Booking::getPrice)
-                .reduce(Long::sum);
+            var finalPrice = bookingService.calculateOverallPriceForBooking(bookings);
 
-            if (finalPrice.isEmpty()) {
-                throw new RuntimeException("Final price was not present");
-            }
-
-            return String.format("Seats booked: %s; the price of this booking is %d HUF", seatStr, finalPrice.getAsLong());
+            return String.format("Seats booked: %s; the price of this booking is %d HUF", seatStr, finalPrice);
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
@@ -178,18 +168,15 @@ public class UserCommand extends AbstractUserStateCommand {
 
         var finalPrice = bookings.stream()
             .mapToLong(Booking::getPrice)
-            .reduce(Long::sum);
-
-        if (finalPrice.isEmpty()) {
-            throw new RuntimeException("Final price was not present");
-        }
+            .reduce(Long::sum)
+            .orElseThrow(() -> new RuntimeException("Final price was not present"));
 
         return String.format("Seat %s on %s in room %s starting at %s for %d HUF",
             seats,
             screening.getMovie(),
             screening.getRoom().getName(),
             screening.getScreeningTime().format(dateTimeFormatter),
-            finalPrice.getAsLong());
+            finalPrice);
     }
 
 }
