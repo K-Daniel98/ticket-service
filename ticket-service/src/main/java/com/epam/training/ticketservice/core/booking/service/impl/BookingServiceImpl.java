@@ -16,6 +16,7 @@ import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.screening.repository.ScreeningRepository;
 import com.epam.training.ticketservice.core.screening.service.ScreeningService;
 import com.epam.training.ticketservice.core.user.model.User;
+import com.epam.training.ticketservice.core.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ public class BookingServiceImpl implements BookingService {
     private final ScreeningService screeningService;
     private final RoomService roomService;
     private final MovieService movieService;
+    private final UserService userService;
     private final DateTimeFormatter formatter;
     private final BasePrice basePrice;
 
@@ -38,12 +40,14 @@ public class BookingServiceImpl implements BookingService {
                               ScreeningService screeningService,
                               RoomService roomService,
                               MovieService movieService,
+                              UserService userService,
                               DateTimeFormatter formatter,
                               BasePrice basePrice) {
         this.screeningRepository = screeningRepository;
         this.screeningService = screeningService;
         this.roomService = roomService;
         this.movieService = movieService;
+        this.userService = userService;
         this.formatter = formatter;
         this.basePrice = basePrice;
     }
@@ -96,7 +100,7 @@ public class BookingServiceImpl implements BookingService {
                 throw new SeatAlreadyTakenException(booking);
             }
 
-            user.getBookings().add(booking);
+            userService.addBooking(user, booking);
             screening.getBookings().add(booking);
 
         }

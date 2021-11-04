@@ -1,6 +1,5 @@
 package com.epam.training.ticketservice.core.pricing.service.impl;
 
-import com.epam.training.ticketservice.configuration.ApplicationConfiguration;
 import com.epam.training.ticketservice.core.movie.exception.MovieDoesNotExistException;
 import com.epam.training.ticketservice.core.movie.model.Movie;
 import com.epam.training.ticketservice.core.movie.service.MovieService;
@@ -19,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class PirceComponentServiceImpl implements PriceComponentService {
@@ -27,16 +27,19 @@ public class PirceComponentServiceImpl implements PriceComponentService {
     private final MovieService movieService;
     private final ScreeningService screeningService;
     private final RoomService roomService;
+    private final DateTimeFormatter dateTimeFormatter;
 
     @Autowired
     public PirceComponentServiceImpl(PriceComponentRepository priceComponentRepository,
                                      MovieService movieService,
                                      ScreeningService screeningService,
-                                     RoomService roomService) {
+                                     RoomService roomService,
+                                     DateTimeFormatter dateTimeFormatter) {
         this.priceComponentRepository = priceComponentRepository;
         this.movieService = movieService;
         this.screeningService = screeningService;
         this.roomService = roomService;
+        this.dateTimeFormatter = dateTimeFormatter;
     }
 
     @Override
@@ -95,7 +98,7 @@ public class PirceComponentServiceImpl implements PriceComponentService {
     public Screening attachPriceComponentToScreening(String existingPriceComponentName, String movieName, String roomName,
                                                      String screeningTime) {
         var room = roomService.getRoomByName(roomName);
-        var formattedScreeningTime = LocalDateTime.parse(screeningTime, ApplicationConfiguration.formatter);
+        var formattedScreeningTime = LocalDateTime.parse(screeningTime, dateTimeFormatter);
 
         if (room.isEmpty()) {
             throw new RoomDoesNotExistException(roomName);

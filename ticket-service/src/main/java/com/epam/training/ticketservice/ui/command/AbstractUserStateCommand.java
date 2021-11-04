@@ -15,7 +15,7 @@ public abstract class AbstractUserStateCommand {
     protected Availability loggedIn() {
         return isLoggedIn()
             ? Availability.available()
-            : Availability.unavailable("You are not signed in"); // You need to login first
+            : Availability.unavailable("You are not signed in");
     }
 
     protected Availability admin() {
@@ -27,7 +27,7 @@ public abstract class AbstractUserStateCommand {
     protected Availability notAdmin() {
         return isLoggedIn() && !isAdmin()
             ? Availability.available()
-            : Availability.unavailable(""); // Only regular user accounts can use this command
+            : Availability.unavailable("Only accounts with user role can use this command");
     }
 
     private boolean isLoggedIn() {

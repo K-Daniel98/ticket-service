@@ -1,11 +1,10 @@
 package com.epam.training.ticketservice.ui.command.impl;
 
-import com.epam.training.ticketservice.configuration.ApplicationConfiguration;
 import com.epam.training.ticketservice.core.booking.model.Booking;
-import com.epam.training.ticketservice.core.screening.model.Screening;
-import com.epam.training.ticketservice.core.user.service.AuthService;
 import com.epam.training.ticketservice.core.booking.service.BookingService;
+import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.user.model.User;
+import com.epam.training.ticketservice.core.user.service.AuthService;
 import com.epam.training.ticketservice.core.user.service.UserService;
 import com.epam.training.ticketservice.ui.command.AbstractUserStateCommand;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +13,7 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellMethodAvailability;
 import org.springframework.shell.standard.ShellOption;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,15 +26,18 @@ public class UserCommand extends AbstractUserStateCommand {
 
     private final UserService userService;
     private final BookingService bookingService;
+    private final DateTimeFormatter dateTimeFormatter;
 
     @Autowired
     public UserCommand(
         AuthService authService,
         UserService userService,
-        BookingService bookingService) {
+        BookingService bookingService,
+        DateTimeFormatter dateTimeFormatter) {
         super(authService);
         this.userService = userService;
         this.bookingService = bookingService;
+        this.dateTimeFormatter = dateTimeFormatter;
     }
 
     @ShellMethod(value = "Sign in as an administrator", key = "sign in privileged")
@@ -121,10 +124,13 @@ public class UserCommand extends AbstractUserStateCommand {
 
             var finalPrice = bookings.stream()
                 .mapToLong(Booking::getPrice)
-                .reduce(Long::sum)
-                .getAsLong();
+                .reduce(Long::sum);
 
-            return String.format("Seats booked: %s; the price of this booking is %d HUF", seatStr, finalPrice);
+            if (finalPrice.isEmpty()) {
+                throw new RuntimeException("Final price was not present");
+            }
+
+            return String.format("Seats booked: %s; the price of this booking is %d HUF", seatStr, finalPrice.getAsLong());
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
@@ -158,13 +164,13 @@ public class UserCommand extends AbstractUserStateCommand {
         return bookings;
     }
 
-    private static List<String> getBookingData(List<List<Booking>> bookings, Screening screening) {
+    private List<String> getBookingData(List<List<Booking>> bookings, Screening screening) {
         return bookings.stream()
             .map(bookingList -> getBookingDataString(bookingList, screening))
             .collect(Collectors.toList());
     }
 
-    private static String getBookingDataString(List<Booking> bookings, Screening screening) {
+    private String getBookingDataString(List<Booking> bookings, Screening screening) {
 
         var seats = bookings.stream()
             .map(Booking::toString)
@@ -172,15 +178,18 @@ public class UserCommand extends AbstractUserStateCommand {
 
         var finalPrice = bookings.stream()
             .mapToLong(Booking::getPrice)
-            .reduce(Long::sum)
-            .getAsLong();
+            .reduce(Long::sum);
+
+        if (finalPrice.isEmpty()) {
+            throw new RuntimeException("Final price was not present");
+        }
 
         return String.format("Seat %s on %s in room %s starting at %s for %d HUF",
             seats,
             screening.getMovie(),
             screening.getRoom().getName(),
-            screening.getScreeningTime().format(ApplicationConfiguration.formatter),
-            finalPrice);
+            screening.getScreeningTime().format(dateTimeFormatter),
+            finalPrice.getAsLong());
     }
 
 }

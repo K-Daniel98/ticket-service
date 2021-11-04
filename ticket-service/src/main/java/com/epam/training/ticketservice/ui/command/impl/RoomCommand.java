@@ -47,11 +47,11 @@ public class RoomCommand extends AbstractUserStateCommand {
     }
 
     @ShellMethod(value = "Lists all rooms", key = "list rooms")
-    public List<String> listMovies() {
+    public List<String> listRooms() {
         var rooms = roomService.listRooms();
 
         if (rooms.size() == 0) {
-            return List.of("There are no movies at the moment");
+            return List.of("There are no rooms at the moment");
         }
 
         return rooms

@@ -1,17 +1,17 @@
 package com.epam.training.ticketservice.core.screening.service.impl;
 
-import com.epam.training.ticketservice.core.movie.exception.MovieDoesNotExistException;
 import com.epam.training.ticketservice.core.movie.model.Movie;
 import com.epam.training.ticketservice.core.movie.service.MovieService;
-import com.epam.training.ticketservice.core.room.exception.RoomDoesNotExistException;
 import com.epam.training.ticketservice.core.room.model.Room;
 import com.epam.training.ticketservice.core.room.service.RoomService;
 import com.epam.training.ticketservice.core.screening.exception.ScreeningBreakViolationException;
+import com.epam.training.ticketservice.core.screening.exception.ScreeningDoesNotExistException;
 import com.epam.training.ticketservice.core.screening.exception.ScreeningOverlapException;
 import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.screening.repository.ScreeningRepository;
 import com.epam.training.ticketservice.core.screening.service.ScreeningService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.shell.standard.ShellOption;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +28,15 @@ public class ScreeningServiceImpl implements ScreeningService {
 
     private final ScreeningRepository screeningRepository;
     private final RoomService roomService;
+    private final MovieService movieService;
+    private final DateTimeFormatter dateTimeFormatter;
 
     @Autowired
-    public ScreeningServiceImpl(ScreeningRepository screeningRepository, RoomService roomService) {
+    public ScreeningServiceImpl(ScreeningRepository screeningRepository, RoomService roomService, MovieService movieService, DateTimeFormatter dateTimeFormatter) {
         this.screeningRepository = screeningRepository;
         this.roomService = roomService;
+        this.movieService = movieService;
+        this.dateTimeFormatter = dateTimeFormatter;
     }
 
     @Override
@@ -52,10 +56,10 @@ public class ScreeningServiceImpl implements ScreeningService {
                     .forEach(roomScreening -> {
 
                         var startTime = screening.getScreeningTime();
-                        var startLength = screening.getMovie().getLength();
+                        long startLength = screening.getMovie().getLength();
 
                         var endTime = roomScreening.getScreeningTime();
-                        var endLength = roomScreening.getMovie().getLength();
+                        long endLength = roomScreening.getMovie().getLength();
 
                         var endWithDelay = endLength + delayInMinutes;
 
@@ -84,8 +88,29 @@ public class ScreeningServiceImpl implements ScreeningService {
     }
 
     @Override
-    public void deleteScreening(Screening screening) {
-        screeningRepository.delete(screening);
+    public void deleteScreening(@ShellOption String movieName,
+                                @ShellOption String roomName,
+                                @ShellOption String screeningTime) {
+
+        var screeningDateTime = LocalDateTime.parse(screeningTime, dateTimeFormatter);
+
+        var movie = movieService.getMovieByName(movieName);
+        if (movie.isEmpty()) {
+            throw new RuntimeException(String.format("Movie '%s' does not exist", movieName));
+        }
+
+        var room = roomService.getRoomByName(roomName);
+        if (room.isEmpty()) {
+            throw new RuntimeException(String.format("Room '%s' does not exist", roomName));
+        }
+
+        var screening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie.get(), room.get(), screeningDateTime);
+
+        if (screening.isEmpty()) {
+            throw new ScreeningDoesNotExistException();
+        }
+
+        screeningRepository.delete(screening.get());
     }
 
     @Override

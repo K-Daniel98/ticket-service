@@ -75,22 +75,15 @@ public class ScreeningCommand extends AbstractUserStateCommand {
 
     @ShellMethodAvailability("admin")
     @ShellMethod(value = "Deletes a screening", key = "delete screening")
-    public String deleteScreening(@ShellOption String movieName, @ShellOption String roomName,
+    public String deleteScreening(@ShellOption String movieName,
+                                  @ShellOption String roomName,
                                   @ShellOption String screeningTime) {
-
         try {
-            var screening = getScreening(movieName, roomName, screeningTime);
-
-            if (screening.isEmpty()) {
-                throw new RuntimeException("Screening does not exist");
-            }
-
-            screeningService.deleteScreening(screening.get());
+            screeningService.deleteScreening(movieName, roomName, screeningTime);
 
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-
         return "Screening has been deleted";
     }
 
@@ -104,7 +97,7 @@ public class ScreeningCommand extends AbstractUserStateCommand {
 
         return screenings
             .stream()
-            .map(Screening::toString)
+            .map(this::toStringScreeningData)
             .collect(Collectors.toList());
     }
 
@@ -124,4 +117,10 @@ public class ScreeningCommand extends AbstractUserStateCommand {
         return screeningService.getScreeningByMovieAndRoomAndScreeningTime(movie.get(), room.get(), screeningDateTime);
     }
 
+    private String toStringScreeningData(Screening screening) {
+        return String.format("%s, screened in room %s, at %s",
+            screening.getMovie(),
+            screening.getRoom().getName(),
+            dateTimeFormatter.format(screening.getScreeningTime()));
+    }
 }

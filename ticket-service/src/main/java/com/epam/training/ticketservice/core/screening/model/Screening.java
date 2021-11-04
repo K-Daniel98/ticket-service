@@ -1,6 +1,5 @@
 package com.epam.training.ticketservice.core.screening.model;
 
-import com.epam.training.ticketservice.configuration.ApplicationConfiguration;
 import com.epam.training.ticketservice.core.booking.model.Booking;
 import com.epam.training.ticketservice.core.movie.model.Movie;
 import com.epam.training.ticketservice.core.pricing.model.PriceComponent;
@@ -53,12 +52,6 @@ public class Screening {
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private final Set<Booking> bookings = new HashSet<>();
-
-    @Override
-    public String toString() {
-        return String.format("%s, screened in room %s, at %s", movie.toString(), room.getName(),
-            ApplicationConfiguration.formatter.format(screeningTime));
-    }
 
     @Override
     public boolean equals(Object o) {
