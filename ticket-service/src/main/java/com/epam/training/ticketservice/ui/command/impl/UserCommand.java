@@ -2,11 +2,9 @@ package com.epam.training.ticketservice.ui.command.impl;
 
 import com.epam.training.ticketservice.configuration.ApplicationConfiguration;
 import com.epam.training.ticketservice.core.booking.model.Booking;
+import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.user.service.AuthService;
 import com.epam.training.ticketservice.core.booking.service.BookingService;
-import com.epam.training.ticketservice.core.movie.service.MovieService;
-import com.epam.training.ticketservice.core.room.service.RoomService;
-import com.epam.training.ticketservice.core.screening.service.ScreeningService;
 import com.epam.training.ticketservice.core.user.model.User;
 import com.epam.training.ticketservice.core.user.service.UserService;
 import com.epam.training.ticketservice.ui.command.AbstractUserStateCommand;
@@ -16,8 +14,11 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellMethodAvailability;
 import org.springframework.shell.standard.ShellOption;
 
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @ShellComponent
@@ -25,27 +26,15 @@ public class UserCommand extends AbstractUserStateCommand {
 
     private final UserService userService;
     private final BookingService bookingService;
-    private final MovieService movieService;
-    private final RoomService roomService;
-    private final ScreeningService screeningService;
-    private final DateTimeFormatter formatter;
 
     @Autowired
     public UserCommand(
         AuthService authService,
         UserService userService,
-        BookingService bookingService,
-        MovieService movieService,
-        RoomService roomService,
-        ScreeningService screeningService,
-        DateTimeFormatter formatter) {
+        BookingService bookingService) {
         super(authService);
         this.userService = userService;
         this.bookingService = bookingService;
-        this.movieService = movieService;
-        this.roomService = roomService;
-        this.screeningService = screeningService;
-        this.formatter = formatter;
     }
 
     @ShellMethod(value = "Sign in as an administrator", key = "sign in privileged")
@@ -89,8 +78,9 @@ public class UserCommand extends AbstractUserStateCommand {
         var result =
             new java.util.ArrayList<>(List.of(String.format("Signed in with account '%s'", user.getUsername())));
 
-        var bookingData = user.getBookings().stream()
-            .map(UserCommand::getBookingDataString)
+        var bookingData = getUniqueBookings(user.getBookings()).entrySet()
+            .stream()
+            .map(kvp -> getBookingDataString(kvp.getValue(), kvp.getKey()))
             .collect(Collectors.toList());
 
         if (bookingData.size() == 0) {
@@ -140,15 +130,57 @@ public class UserCommand extends AbstractUserStateCommand {
         }
     }
 
-    private static String getBookingDataString(Booking booking) {
-        var screening = booking.getScreening();
+    @ShellMethod(value = "Display the discounted (if any) price for a given screening", key = "show price for")
+    public String showPrice(@ShellOption String movieName,
+                            @ShellOption String roomName,
+                            @ShellOption String screeningTime,
+                            @ShellOption String listOfSeats) {
+        try {
+            var price = bookingService.showPriceForBooking(movieName, roomName, screeningTime, listOfSeats);
+            return String.format("The price for this booking would be %d HUF", price);
+        } catch (RuntimeException exception) {
+            return exception.getMessage();
+        }
+    }
+
+    private static Map<Screening, List<Booking>> getUniqueBookings(Set<Booking> bookingSet) {
+        var bookings = new HashMap<Screening, List<Booking>>();
+
+        for (var booking : bookingSet) {
+            var screening = booking.getScreening();
+            if (bookings.containsKey(screening)) {
+                bookings.get(screening).add(booking);
+            } else {
+                bookings.put(screening, new ArrayList<>(List.of(booking)));
+            }
+        }
+
+        return bookings;
+    }
+
+    private static List<String> getBookingData(List<List<Booking>> bookings, Screening screening) {
+        return bookings.stream()
+            .map(bookingList -> getBookingDataString(bookingList, screening))
+            .collect(Collectors.toList());
+    }
+
+    private static String getBookingDataString(List<Booking> bookings, Screening screening) {
+
+        var seats = bookings.stream()
+            .map(Booking::toString)
+            .collect(Collectors.joining(", "));
+
+        var finalPrice = bookings.stream()
+            .mapToLong(Booking::getPrice)
+            .reduce(Long::sum)
+            .getAsLong();
 
         return String.format("Seat %s on %s in room %s starting at %s for %d HUF",
-            booking,
+            seats,
             screening.getMovie(),
-            screening.getRoom(),
+            screening.getRoom().getName(),
             screening.getScreeningTime().format(ApplicationConfiguration.formatter),
-            booking.getPrice());
+            finalPrice);
     }
 
 }
