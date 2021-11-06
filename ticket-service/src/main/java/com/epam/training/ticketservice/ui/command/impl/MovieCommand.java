@@ -28,11 +28,11 @@ public class MovieCommand extends AbstractUserStateCommand {
     @ShellMethod(value = "Create a new movie", key = "create movie")
     public String createMovie(@ShellOption String name, @ShellOption String type, @ShellOption long length) {
         try {
-            movieService.createMovie(new Movie(name, type, length));
+            movieService.createMovie(name, type, length);
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return String.format("Movie '%s' has been created.", name);
+        return null;
     }
 
     @ShellMethodAvailability("admin")
@@ -43,7 +43,7 @@ public class MovieCommand extends AbstractUserStateCommand {
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return String.format("Movie '%s' has been deleted.", name);
+        return null;
     }
 
     @ShellMethod(value = "Lists all movies", key = "list movies")
@@ -64,10 +64,10 @@ public class MovieCommand extends AbstractUserStateCommand {
     @ShellMethod(value = "Updates a movie", key = "update movie")
     public String updateMovie(@ShellOption String name, @ShellOption String type, @ShellOption long length) {
         try {
-            movieService.updateMovie(new Movie(name, type, length));
+            movieService.updateMovie(name, type, length);
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return String.format("Movie '%s' has been updated.", name);
+        return null;
     }
 }

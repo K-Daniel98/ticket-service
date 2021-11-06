@@ -1,10 +1,8 @@
 package com.epam.training.ticketservice.core.screening.service.impl;
 
 import com.epam.training.ticketservice.core.movie.exception.MovieDoesNotExistException;
-import com.epam.training.ticketservice.core.movie.model.Movie;
 import com.epam.training.ticketservice.core.movie.repository.MovieRepository;
 import com.epam.training.ticketservice.core.room.exception.RoomDoesNotExistException;
-import com.epam.training.ticketservice.core.room.model.Room;
 import com.epam.training.ticketservice.core.room.repository.RoomRepository;
 import com.epam.training.ticketservice.core.screening.exception.ScreeningBreakViolationException;
 import com.epam.training.ticketservice.core.screening.exception.ScreeningDoesNotExistException;
@@ -12,13 +10,12 @@ import com.epam.training.ticketservice.core.screening.exception.ScreeningOverlap
 import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.screening.repository.ScreeningRepository;
 import com.epam.training.ticketservice.core.screening.service.ScreeningService;
+import com.epam.training.ticketservice.core.utils.formatter.DateTimeFormatterUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ScreeningServiceImpl implements ScreeningService {
@@ -28,26 +25,15 @@ public class ScreeningServiceImpl implements ScreeningService {
     private final ScreeningRepository screeningRepository;
     private final RoomRepository roomRepository;
     private final MovieRepository movieRepository;
-    private final DateTimeFormatter dateTimeFormatter;
+    private final DateTimeFormatterUtil dateTimeFormatterUtil;
 
     @Autowired
     public ScreeningServiceImpl(ScreeningRepository screeningRepository, RoomRepository roomRepository,
-                                MovieRepository movieRepository, DateTimeFormatter dateTimeFormatter) {
+                                MovieRepository movieRepository, DateTimeFormatterUtil dateTimeFormatterUtil) {
         this.screeningRepository = screeningRepository;
         this.roomRepository = roomRepository;
         this.movieRepository = movieRepository;
-        this.dateTimeFormatter = dateTimeFormatter;
-    }
-
-    @Override
-    public Optional<Screening> getScreeningByMovieAndRoomAndScreeningTime(Movie movie, Room room,
-                                                                          LocalDateTime screeningTime) {
-        return screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room, screeningTime);
-    }
-
-    @Override
-    public List<Screening> getScreeningsByMovie(Movie movie) {
-        return screeningRepository.findScreeningsByMovie(movie);
+        this.dateTimeFormatterUtil = dateTimeFormatterUtil;
     }
 
     @Override
@@ -55,7 +41,7 @@ public class ScreeningServiceImpl implements ScreeningService {
                                 String roomName,
                                 String screeningTime) {
 
-        var screeningDateTime = LocalDateTime.parse(screeningTime, dateTimeFormatter);
+        var screeningDateTime = dateTimeFormatterUtil.fromString(screeningTime);
 
         var movie = movieRepository.findByName(movieName)
             .orElseThrow(() -> new MovieDoesNotExistException(movieName));
@@ -63,8 +49,7 @@ public class ScreeningServiceImpl implements ScreeningService {
         var room = roomRepository.findByName(roomName)
             .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
-        var screening = new Screening(room, screeningDateTime);
-        screening.setMovie(movie);
+        var screening = new Screening(movie, room, screeningDateTime);
 
         screeningRepository.findAll()
             .forEach(entity ->
@@ -110,7 +95,7 @@ public class ScreeningServiceImpl implements ScreeningService {
     @Override
     public void deleteScreening(String movieName, String roomName, String screeningTime) {
 
-        var screeningDateTime = LocalDateTime.parse(screeningTime, dateTimeFormatter);
+        var screeningDateTime = dateTimeFormatterUtil.fromString(screeningTime);
 
         var movie = movieRepository.findByName(movieName)
             .orElseThrow(() -> new MovieDoesNotExistException(movieName));

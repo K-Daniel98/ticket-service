@@ -16,11 +16,10 @@ import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.screening.repository.ScreeningRepository;
 import com.epam.training.ticketservice.core.user.model.User;
 import com.epam.training.ticketservice.core.user.service.UserService;
+import com.epam.training.ticketservice.core.utils.formatter.DateTimeFormatterUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Set;
 
@@ -31,7 +30,7 @@ public class BookingServiceImpl implements BookingService {
     private final RoomRepository roomRepository;
     private final MovieRepository movieRepository;
     private final UserService userService;
-    private final DateTimeFormatter formatter;
+    private final DateTimeFormatterUtil dateTimeFormatterUtil;
     private final BasePrice basePrice;
 
     @Autowired
@@ -39,13 +38,13 @@ public class BookingServiceImpl implements BookingService {
                               RoomRepository roomRepository,
                               MovieRepository movieRepository,
                               UserService userService,
-                              DateTimeFormatter formatter,
+                              DateTimeFormatterUtil dateTimeFormatterUtil,
                               BasePrice basePrice) {
         this.screeningRepository = screeningRepository;
         this.roomRepository = roomRepository;
         this.movieRepository = movieRepository;
         this.userService = userService;
-        this.formatter = formatter;
+        this.dateTimeFormatterUtil = dateTimeFormatterUtil;
         this.basePrice = basePrice;
     }
 
@@ -59,7 +58,7 @@ public class BookingServiceImpl implements BookingService {
             .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
         var plannedScreening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room,
-                LocalDateTime.parse(screeningTime, formatter))
+                dateTimeFormatterUtil.fromString(screeningTime))
             .orElseThrow(ScreeningDoesNotExistException::new);
 
         var splitted = seats.split(" ");
@@ -73,15 +72,7 @@ public class BookingServiceImpl implements BookingService {
             var row = Integer.parseInt(seatSplitted[0]);
             var column = Integer.parseInt(seatSplitted[1]);
 
-            var booking = new Booking(plannedScreening, user, pricePerBooking, row, column);
-
-            if (!doesSeatExist(room, row, column)) {
-                throw new SeatDoesNotExistException(booking);
-            }
-
-            if (isSeatTaken(plannedScreening.getBookings(), row, column)) {
-                throw new SeatAlreadyTakenException(booking);
-            }
+            var booking = createBookingFromSeatsData(room, plannedScreening, user, pricePerBooking, row, column);
 
             userService.addBooking(user, booking);
             plannedScreening.getBookings().add(booking);
@@ -103,7 +94,7 @@ public class BookingServiceImpl implements BookingService {
             .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
         var plannedScreening = screeningRepository.findScreeningByMovieAndRoomAndScreeningTime(movie, room,
-                LocalDateTime.parse(screeningTime, formatter))
+                dateTimeFormatterUtil.fromString(screeningTime))
             .orElseThrow(ScreeningDoesNotExistException::new);
 
         var numberOfSeats = seats.split(" ").length;
@@ -116,6 +107,21 @@ public class BookingServiceImpl implements BookingService {
             .mapToLong(Booking::getPrice)
             .reduce(Long::sum)
             .orElseThrow(() -> new RuntimeException("Final price was not present"));
+    }
+
+    private Booking createBookingFromSeatsData(Room room, Screening screening, User user, long pricePerBooking, int row,
+                                               int column) {
+        var booking = new Booking(screening, user, pricePerBooking, row, column);
+
+        if (!doesSeatExist(room, row, column)) {
+            throw new SeatDoesNotExistException(booking);
+        }
+
+        if (isSeatTaken(screening.getBookings(), row, column)) {
+            throw new SeatAlreadyTakenException(booking);
+        }
+
+        return booking;
     }
 
     private long calculateFinalPrice(Movie movie, Room room, Screening screening) {

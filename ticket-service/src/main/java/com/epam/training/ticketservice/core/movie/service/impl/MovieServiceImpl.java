@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class MovieServiceImpl implements MovieService {
@@ -32,21 +31,19 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public void createMovie(Movie movie) {
-        var name = movie.getName();
+    public void createMovie(String name, String type, long length) {
         if (movieRepository.existsById(name)) {
             throw new MovieAlreadyExistException(name);
         }
-        movieRepository.save(movie);
+        movieRepository.save(new Movie(name, type, length));
     }
 
     @Override
-    public void updateMovie(Movie movie) {
-        var name = movie.getName();
+    public void updateMovie(String name, String type, long length) {
         if (!movieRepository.existsById(name)) {
             throw new MovieDoesNotExistException(name);
         }
-        movieRepository.save(movie);
+        movieRepository.save(new Movie(name, type, length));
     }
 
     @Override
@@ -65,11 +62,6 @@ public class MovieServiceImpl implements MovieService {
             screeningRepository.delete(screening);
         }
         movieRepository.delete(movie);
-    }
-
-    @Override
-    public Optional<Movie> getMovieByName(String name) {
-        return movieRepository.findByName(name);
     }
 
     @Override

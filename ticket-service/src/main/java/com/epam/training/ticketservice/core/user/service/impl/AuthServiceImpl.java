@@ -1,5 +1,6 @@
 package com.epam.training.ticketservice.core.user.service.impl;
 
+import com.epam.training.ticketservice.core.user.exception.InvalidCredentialsException;
 import com.epam.training.ticketservice.core.user.service.AuthService;
 import com.epam.training.ticketservice.core.user.model.User;
 import com.epam.training.ticketservice.core.user.service.UserService;
@@ -22,7 +23,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void login(String username, String password) {
         user = userService.getUserByUsernameAndPassword(username, password)
-            .orElseThrow(() -> new RuntimeException("Login failed due to incorrect credentials"));
+            .orElseThrow(InvalidCredentialsException::new);
     }
 
     @Override

@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class RoomServiceImpl implements RoomService {
@@ -22,21 +21,19 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public void createRoom(Room room) {
-        var name = room.getName();
+    public void createRoom(String name, int rows, int columns) {
         if (roomRepository.existsById(name)) {
             throw new RoomAlreadyExistException(name);
         }
-        roomRepository.save(room);
+        roomRepository.save(new Room(name, rows, columns));
     }
 
     @Override
-    public void updateRoom(Room room) {
-        var name = room.getName();
+    public void updateRoom(String name, int rows, int columns) {
         if (!roomRepository.existsById(name)) {
             throw new RoomDoesNotExistException(name);
         }
-        roomRepository.save(room);
+        roomRepository.save(new Room(name, rows, columns));
     }
 
     @Override
@@ -45,11 +42,6 @@ public class RoomServiceImpl implements RoomService {
             throw new RoomDoesNotExistException(name);
         }
         roomRepository.deleteById(name);
-    }
-
-    @Override
-    public Optional<Room> getRoomByName(String name) {
-        return roomRepository.findByName(name);
     }
 
     @Override

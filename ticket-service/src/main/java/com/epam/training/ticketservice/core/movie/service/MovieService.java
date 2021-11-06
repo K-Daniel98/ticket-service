@@ -3,16 +3,13 @@ package com.epam.training.ticketservice.core.movie.service;
 import com.epam.training.ticketservice.core.movie.model.Movie;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface MovieService {
-    void createMovie(Movie movie);
+    void createMovie(String name, String type, long length);
 
-    void updateMovie(Movie movie);
+    void updateMovie(String name, String type, long length);
 
     void deleteMovie(String name);
-
-    Optional<Movie> getMovieByName(String name);
 
     boolean exists(String name);
 

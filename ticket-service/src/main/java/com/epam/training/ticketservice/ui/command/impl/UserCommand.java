@@ -6,6 +6,7 @@ import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.user.model.User;
 import com.epam.training.ticketservice.core.user.service.AuthService;
 import com.epam.training.ticketservice.core.user.service.UserService;
+import com.epam.training.ticketservice.core.utils.formatter.DateTimeFormatterUtil;
 import com.epam.training.ticketservice.ui.command.AbstractUserStateCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellComponent;
@@ -13,7 +14,6 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellMethodAvailability;
 import org.springframework.shell.standard.ShellOption;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,27 +26,27 @@ public class UserCommand extends AbstractUserStateCommand {
 
     private final UserService userService;
     private final BookingService bookingService;
-    private final DateTimeFormatter dateTimeFormatter;
+    private final DateTimeFormatterUtil dateTimeFormatterUtil;
 
     @Autowired
     public UserCommand(
         AuthService authService,
         UserService userService,
         BookingService bookingService,
-        DateTimeFormatter dateTimeFormatter) {
+        DateTimeFormatterUtil dateTimeFormatterUtil) {
         super(authService);
         this.userService = userService;
         this.bookingService = bookingService;
-        this.dateTimeFormatter = dateTimeFormatter;
+        this.dateTimeFormatterUtil = dateTimeFormatterUtil;
     }
 
     @ShellMethod(value = "Sign in as an administrator", key = "sign in privileged")
-    private String signInPrivileged(@ShellOption String username, @ShellOption String password) {
+    public String signInPrivileged(@ShellOption String username, @ShellOption String password) {
         return signIn(username, password);
     }
 
     @ShellMethod(value = "Sign in as a user", key = "sign in")
-    private String signInRegular(@ShellOption String username, @ShellOption String password) {
+    public String signInRegular(@ShellOption String username, @ShellOption String password) {
         return signIn(username, password);
     }
 
@@ -60,13 +60,12 @@ public class UserCommand extends AbstractUserStateCommand {
     }
 
     @ShellMethod(value = "Sign out", key = "sign out")
-    private String signOut() {
+    public void signOut() {
         authService.logout();
-        return "Signed out";
     }
 
     @ShellMethod(value = "Describe account", key = "describe account")
-    private List<String> describeAccount() {
+    public List<String> describeAccount() {
         if (authService.getLoggedInUser().isEmpty()) {
             return List.of("You are not signed in");
         }
@@ -97,18 +96,18 @@ public class UserCommand extends AbstractUserStateCommand {
     }
 
     @ShellMethod(value = "Sign up", key = "sign up")
-    private String signUp(@ShellOption String username, @ShellOption String password) {
+    public String signUp(@ShellOption String username, @ShellOption String password) {
         try {
             userService.register(username, password);
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return "Account created";
+        return null;
     }
 
     @ShellMethodAvailability("notAdmin")
     @ShellMethod(value = "Book a ticket", key = "book")
-    private String bookTicket(@ShellOption String movieName, @ShellOption String roomName,
+    public String bookTicket(@ShellOption String movieName, @ShellOption String roomName,
                               @ShellOption String screeningDate, @ShellOption String listOfSeats) {
         try {
             var user = authService.getLoggedInUser().get();
@@ -175,7 +174,7 @@ public class UserCommand extends AbstractUserStateCommand {
             seats,
             screening.getMovie(),
             screening.getRoom().getName(),
-            screening.getScreeningTime().format(dateTimeFormatter),
+            dateTimeFormatterUtil.fromLocalDateTime(screening.getScreeningTime()),
             finalPrice);
     }
 

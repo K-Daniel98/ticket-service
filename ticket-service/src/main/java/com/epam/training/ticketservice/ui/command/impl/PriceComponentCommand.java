@@ -3,6 +3,7 @@ package com.epam.training.ticketservice.ui.command.impl;
 import com.epam.training.ticketservice.core.pricing.model.BasePrice;
 import com.epam.training.ticketservice.core.pricing.service.PriceComponentService;
 import com.epam.training.ticketservice.core.user.service.AuthService;
+import com.epam.training.ticketservice.core.utils.formatter.DateTimeFormatterUtil;
 import com.epam.training.ticketservice.ui.command.AbstractUserStateCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellComponent;
@@ -10,29 +11,27 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellMethodAvailability;
 import org.springframework.shell.standard.ShellOption;
 
-import java.time.format.DateTimeFormatter;
-
 @ShellComponent
 public class PriceComponentCommand extends AbstractUserStateCommand {
 
     private final PriceComponentService priceComponentService;
     private final BasePrice basePrice;
-    private final DateTimeFormatter dateTimeFormatter;
+    private final DateTimeFormatterUtil dateTimeFormatterUtil;
 
     @Autowired
     public PriceComponentCommand(AuthService authService, PriceComponentService priceComponentService,
-                                 BasePrice basePrice, DateTimeFormatter dateTimeFormatter) {
+                                 BasePrice basePrice, DateTimeFormatterUtil dateTimeFormatterUtil) {
         super(authService);
         this.priceComponentService = priceComponentService;
         this.basePrice = basePrice;
-        this.dateTimeFormatter = dateTimeFormatter;
+        this.dateTimeFormatterUtil = dateTimeFormatterUtil;
     }
 
     @ShellMethodAvailability("admin")
     @ShellMethod(value = "Updates the base price", key = "update base price")
     public String updateBasePrice(@ShellOption long amount) {
         basePrice.setAmount(amount);
-        return String.format("Base price has been set to %d", amount);
+        return null;
     }
 
     @ShellMethodAvailability("admin")
@@ -43,7 +42,7 @@ public class PriceComponentCommand extends AbstractUserStateCommand {
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return String.format("Price component ('%s', %d HUF) has been created", priceComponentName, amount);
+        return null;
     }
 
     @ShellMethodAvailability("admin")
@@ -54,7 +53,7 @@ public class PriceComponentCommand extends AbstractUserStateCommand {
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return String.format("Attached price component '%s' to movie '%s'", priceComponentName, movieName);
+        return null;
     }
 
     @ShellMethodAvailability("admin")
@@ -65,7 +64,7 @@ public class PriceComponentCommand extends AbstractUserStateCommand {
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return String.format("Attached price component '%s' to room '%s'", priceComponentName, roomName);
+        return null;
     }
 
     @ShellMethodAvailability("admin")
@@ -82,7 +81,7 @@ public class PriceComponentCommand extends AbstractUserStateCommand {
                 priceComponentName,
                 screening.getMovie(),
                 screening.getRoom().getName(),
-                screening.getScreeningTime().format(dateTimeFormatter));
+                dateTimeFormatterUtil.fromLocalDateTime(screening.getScreeningTime()));
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }

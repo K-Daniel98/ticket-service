@@ -28,11 +28,11 @@ public class RoomCommand extends AbstractUserStateCommand {
     @ShellMethod(value = "Creates a new room", key = "create room")
     public String createRoom(@ShellOption String roomName, @ShellOption int rows, @ShellOption int columns) {
         try {
-            roomService.createRoom(new Room(roomName, rows, columns));
+            roomService.createRoom(roomName, rows, columns);
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return String.format("Room '%s' has been created.", roomName);
+        return null;
     }
 
     @ShellMethodAvailability("loggedIn")
@@ -43,7 +43,7 @@ public class RoomCommand extends AbstractUserStateCommand {
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return String.format("Room '%s' has been deleted.", name);
+        return null;
     }
 
     @ShellMethod(value = "Lists all rooms", key = "list rooms")
@@ -63,11 +63,11 @@ public class RoomCommand extends AbstractUserStateCommand {
     @ShellMethod(value = "Updates a room", key = "update room")
     public String updateMovie(@ShellOption String roomName, @ShellOption int rows, @ShellOption int columns) {
         try {
-            roomService.updateRoom(new Room(roomName, rows, columns));
+            roomService.updateRoom(roomName, rows, columns);
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return String.format("Room '%s' has been updated.", roomName);
+        return null;
     }
 
 }

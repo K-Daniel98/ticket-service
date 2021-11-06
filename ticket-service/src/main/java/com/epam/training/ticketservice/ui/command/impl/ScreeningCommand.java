@@ -3,6 +3,7 @@ package com.epam.training.ticketservice.ui.command.impl;
 import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.screening.service.ScreeningService;
 import com.epam.training.ticketservice.core.user.service.AuthService;
+import com.epam.training.ticketservice.core.utils.formatter.DateTimeFormatterUtil;
 import com.epam.training.ticketservice.ui.command.AbstractUserStateCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellComponent;
@@ -11,7 +12,6 @@ import org.springframework.shell.standard.ShellMethodAvailability;
 import org.springframework.shell.standard.ShellOption;
 
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,15 +19,15 @@ import java.util.stream.Collectors;
 public class ScreeningCommand extends AbstractUserStateCommand {
 
     private final ScreeningService screeningService;
-    private final DateTimeFormatter dateTimeFormatter;
+    private final DateTimeFormatterUtil dateTimeFormatterUtil;
 
     @Autowired
     public ScreeningCommand(
-        DateTimeFormatter dateTimeFormatter,
+        DateTimeFormatterUtil dateTimeFormatterUtil,
         ScreeningService screeningService,
         AuthService authService) {
         super(authService);
-        this.dateTimeFormatter = dateTimeFormatter;
+        this.dateTimeFormatterUtil = dateTimeFormatterUtil;
         this.screeningService = screeningService;
     }
 
@@ -41,7 +41,6 @@ public class ScreeningCommand extends AbstractUserStateCommand {
             return exception.getMessage();
         }
 
-        //return "Screening has been created";
         return null;
     }
 
@@ -56,7 +55,7 @@ public class ScreeningCommand extends AbstractUserStateCommand {
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
-        return "Screening has been deleted";
+        return null;
     }
 
     @ShellMethod(value = "Lists all screenings", key = "list screenings")
@@ -77,6 +76,6 @@ public class ScreeningCommand extends AbstractUserStateCommand {
         return String.format("%s, screened in room %s, at %s",
             screening.getMovie(),
             screening.getRoom().getName(),
-            dateTimeFormatter.format(screening.getScreeningTime()));
+            dateTimeFormatterUtil.fromLocalDateTime(screening.getScreeningTime()));
     }
 }
