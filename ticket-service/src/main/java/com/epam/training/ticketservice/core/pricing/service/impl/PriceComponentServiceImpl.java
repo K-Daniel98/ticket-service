@@ -14,32 +14,30 @@ import com.epam.training.ticketservice.core.room.repository.RoomRepository;
 import com.epam.training.ticketservice.core.screening.exception.ScreeningDoesNotExistException;
 import com.epam.training.ticketservice.core.screening.model.Screening;
 import com.epam.training.ticketservice.core.screening.repository.ScreeningRepository;
+import com.epam.training.ticketservice.core.utils.formatter.DateTimeFormatterUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 @Service
-public class PirceComponentServiceImpl implements PriceComponentService {
+public class PriceComponentServiceImpl implements PriceComponentService {
 
     private final PriceComponentRepository priceComponentRepository;
     private final MovieRepository movieRepository;
     private final ScreeningRepository screeningRepository;
     private final RoomRepository roomRepository;
-    private final DateTimeFormatter dateTimeFormatter;
+    private final DateTimeFormatterUtil dateTimeFormatterUtil;
 
     @Autowired
-    public PirceComponentServiceImpl(PriceComponentRepository priceComponentRepository,
+    public PriceComponentServiceImpl(PriceComponentRepository priceComponentRepository,
                                      MovieRepository movieRepository,
                                      ScreeningRepository screeningRepository,
                                      RoomRepository roomRepository,
-                                     DateTimeFormatter dateTimeFormatter) {
+                                     DateTimeFormatterUtil dateTimeFormatterUtil) {
         this.priceComponentRepository = priceComponentRepository;
         this.movieRepository = movieRepository;
         this.screeningRepository = screeningRepository;
         this.roomRepository = roomRepository;
-        this.dateTimeFormatter = dateTimeFormatter;
+        this.dateTimeFormatterUtil = dateTimeFormatterUtil;
     }
 
     @Override
@@ -89,7 +87,7 @@ public class PirceComponentServiceImpl implements PriceComponentService {
         var room = roomRepository.findByName(roomName)
             .orElseThrow(() -> new RoomDoesNotExistException(roomName));
 
-        var formattedScreeningTime = LocalDateTime.parse(screeningTime, dateTimeFormatter);
+        var formattedScreeningTime = dateTimeFormatterUtil.fromString(screeningTime);
 
         var movie = movieRepository.findByName(movieName)
             .orElseThrow(() -> new MovieDoesNotExistException(movieName));
