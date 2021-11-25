@@ -51,36 +51,31 @@ public class ScreeningServiceImpl implements ScreeningService {
 
         var screening = new Screening(movie, room, screeningDateTime);
 
-        screeningRepository.findAll()
-            .forEach(entity ->
-                entity
-                    .getRoom()
-                    .getScreenings()
-                    .forEach(roomScreening -> {
+        room.getScreenings()
+            .forEach(roomScreening -> {
 
-                        var startTime = screening.getScreeningTime();
-                        long startLength = screening.getMovie().getLength();
+                var startTime = screening.getScreeningTime();
+                long startLength = screening.getMovie().getLength();
 
-                        var endTime = roomScreening.getScreeningTime();
-                        long endLength = roomScreening.getMovie().getLength();
+                var endTime = roomScreening.getScreeningTime();
+                long endLength = roomScreening.getMovie().getLength();
 
-                        var endWithDelay = endLength + delayInMinutes;
+                var endWithDelay = endLength + delayInMinutes;
 
-                        if (checkOverlap(
-                            startTime,
-                            startLength,
-                            endTime,
-                            endLength)) {
-                            throw new ScreeningOverlapException();
-                        } else if (checkOverlap(
-                            startTime,
-                            startLength,
-                            endTime,
-                            endWithDelay)) {
-                            throw new ScreeningBreakViolationException();
-                        }
-                    })
-            );
+                if (checkOverlap(
+                    startTime,
+                    startLength,
+                    endTime,
+                    endLength)) {
+                    throw new ScreeningOverlapException();
+                } else if (checkOverlap(
+                    startTime,
+                    startLength,
+                    endTime,
+                    endWithDelay)) {
+                    throw new ScreeningBreakViolationException();
+                }
+            });
 
         room.getScreenings().add(screening);
 
