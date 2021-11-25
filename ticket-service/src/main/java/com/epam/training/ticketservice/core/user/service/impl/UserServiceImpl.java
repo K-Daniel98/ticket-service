@@ -8,6 +8,7 @@ import com.epam.training.ticketservice.core.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -22,6 +23,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void register(String username, String password) {
+        Objects.requireNonNull(username, "Username cannot be empty");
+        Objects.requireNonNull(password, "Password cannot be empty");
+
         if (userRepository.existsById(username)) {
             throw new UserAlreadyExistsException(username);
         }

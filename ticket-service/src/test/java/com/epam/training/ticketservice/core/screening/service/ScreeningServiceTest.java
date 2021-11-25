@@ -90,7 +90,6 @@ public class ScreeningServiceTest {
         Mockito.when(movieRepository.findByName(movieName)).thenReturn(Optional.of(movie));
         Mockito.when(roomRepository.findByName(roomName)).thenReturn(Optional.of(room));
         Mockito.when(dateTimeFormatterUtil.fromString(timeStr)).thenReturn(screeningTime);
-        Mockito.when(screeningRepository.findAll()).thenReturn(List.of(screening));
         // Then
         Assertions.assertThrows(
             ScreeningOverlapException.class, () -> screeningService.createScreening(movieName, roomName, timeStr));
@@ -117,7 +116,6 @@ public class ScreeningServiceTest {
         Mockito.when(movieRepository.findByName(movieName)).thenReturn(Optional.of(movie));
         Mockito.when(roomRepository.findByName(roomName)).thenReturn(Optional.of(room));
         Mockito.when(dateTimeFormatterUtil.fromString(timeStr)).thenReturn(screeningTime);
-        Mockito.when(screeningRepository.findAll()).thenReturn(List.of(screening));
         // Then
         Assertions.assertDoesNotThrow(() -> screeningService.createScreening(movieName, roomName, timeStr));
     }

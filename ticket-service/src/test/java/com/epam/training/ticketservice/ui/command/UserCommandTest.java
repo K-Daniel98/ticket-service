@@ -285,7 +285,7 @@ public class UserCommandTest {
             .map(Booking::toString)
             .collect(Collectors.joining(", "));
 
-        var expectedOutput = String.format("Seats booked: %s; the price of this booking is %d HUF", seatStr, finalPrice);;
+        var expectedOutput = String.format("Seats booked: %s; the price for this booking is %d HUF", seatStr, finalPrice);;
         // When
         Mockito.when(authService.getLoggedInUser())
             .thenReturn(Optional.of(user));

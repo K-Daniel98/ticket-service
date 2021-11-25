@@ -124,7 +124,7 @@ public class BookingModelTest {
         var price = 1500L;
 
         var booking = new Booking(screening, user, price, row, column);
-        var expected = String.format("(%d, %d)", row, column);
+        var expected = String.format("(%d,%d)", row, column);
         // When
         var resultString = booking.toString();
         // Then

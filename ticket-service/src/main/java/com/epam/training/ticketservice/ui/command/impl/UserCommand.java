@@ -119,7 +119,7 @@ public class UserCommand extends AbstractUserStateCommand {
 
             var finalPrice = bookingService.calculateOverallPriceForBooking(bookings);
 
-            return String.format("Seats booked: %s; the price of this booking is %d HUF", seatStr, finalPrice);
+            return String.format("Seats booked: %s; the price for this booking is %d HUF", seatStr, finalPrice);
         } catch (RuntimeException exception) {
             return exception.getMessage();
         }
@@ -170,9 +170,9 @@ public class UserCommand extends AbstractUserStateCommand {
             .reduce(Long::sum)
             .orElseThrow(() -> new RuntimeException("Final price was not present"));
 
-        return String.format("Seat %s on %s in room %s starting at %s for %d HUF",
+        return String.format("Seats %s on %s in room %s starting at %s for %d HUF",
             seats,
-            screening.getMovie(),
+            screening.getMovie().getName(),
             screening.getRoom().getName(),
             dateTimeFormatterUtil.fromLocalDateTime(screening.getScreeningTime()),
             finalPrice);
